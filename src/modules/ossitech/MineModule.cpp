@@ -8,6 +8,9 @@ MineModule::MineModule()
 {
     ourPortNum = meshtastic_PortNum_PRIVATE_APP;
 
+    m_lastMotionState = false;
+    m_triggered = false;
+
     m_Servo.setPeriodHertz(50);    // standard 50 hz servo
 	m_Servo.attach(SERVO_PIN, 500, 2000);
 
@@ -20,7 +23,7 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
 {
     meshtastic_MinePacket response;
 
-    if(decoded->messageType == meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER)
+    if (decoded->messageType == meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER)
     {
         if (triggerMine()) {
             response.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS;
@@ -78,7 +81,7 @@ bool MineModule::triggerMine()
 
 bool MineModule::motionDetected()
 {
-    if (digitalRead(MOTION_PIN))
+    if (digitalRead(MOTION_PIN) == 0) // 0 means activated -> connected to GND through sensor.
     {
         if (!m_lastMotionState)
         {

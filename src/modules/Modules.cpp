@@ -107,7 +107,7 @@
 #ifdef OSSITECH_IS_MINE
 #include "modules/ossitech/MineModule.h"
 #else
-// #include "modules/ossitech/TriggerModule.h"
+#include "modules/ossitech/TriggerModule.h"
 #endif
 #endif
 
@@ -297,7 +297,7 @@ void setupModules()
 #ifdef OSSITECH_IS_MINE
     mineModule = new MineModule();
 #else
-    // triggerModule = new TriggerModule();
+    triggerModule = new TriggerModule();
 #endif
 #endif
     

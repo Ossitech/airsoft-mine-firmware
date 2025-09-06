@@ -1,0 +1,109 @@
+#include "TriggerModule.h"
+#include "MeshService.h"
+#include "pitches.h"
+
+TriggerModule *triggerModule;
+
+TriggerModule::TriggerModule()
+    : ProtobufModule("mine", meshtastic_PortNum_PRIVATE_APP, &meshtastic_MinePacket_msg), concurrency::OSThread("MinePlugin")
+{
+    ourPortNum = meshtastic_PortNum_PRIVATE_APP;
+
+    m_lastSwitchState = false;
+
+    pinMode(SWITCH_PIN, INPUT_PULLDOWN);
+}
+
+// This handles a MinePacket protobuf that was parsed from an incoming message
+// in the base class (ProtobufModule).
+bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded)
+{
+    static const Tone melodyMotion[] = {
+        { NOTE_C5, 200, 100 },
+        { NOTE_C5, 200, 100 },
+        { NOTE_C5, 200, 100 }
+    };
+
+    static const Tone melodySuccess[] = {
+        { NOTE_C5, 200, 100 },
+        { NOTE_D5, 200, 100 },
+        { NOTE_E5, 200, 100 }
+    };
+
+    static const Tone melodyAlreadyTriggered[] = {
+        { NOTE_E5, 200, 100 },
+        { NOTE_D5, 200, 100 },
+        { NOTE_C5, 200, 100 }
+    };
+
+    static const Tone melodyError[] = {
+        { NOTE_C4, 500, 100 },
+        { NOTE_D4, 500, 100 },
+        { NOTE_C4, 500, 100 }
+    };
+
+    switch (decoded->messageType)
+    {
+        case meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED:
+        playMelody(melodyMotion, 3);
+        break;
+
+        case meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS:
+        playMelody(melodySuccess, 3);
+        break;
+
+        case meshtastic_MinePacket_MessageType_MINE_MSG_ALREADY_TRIGGERED:
+        playMelody(melodyAlreadyTriggered, 3);
+        break;
+
+        case meshtastic_MinePacket_MessageType_MINE_MSG_ERROR:
+        default:
+        playMelody(melodyError, 3);
+        break;
+    }
+
+    return true;
+}
+
+// This method belongs to the base class OSThread
+// and its execution will be scheduled using the return value
+// of its previous execution as delay in milliseconds.
+int32_t TriggerModule::runOnce()
+{
+    if (digitalRead(SWITCH_PIN) == 0) // 0 means pressed -> connected to GND through switch.
+    {
+        if (!m_lastSwitchState)
+        {
+            // Switch pressed
+            m_lastSwitchState = true;
+
+            meshtastic_MinePacket msg;
+            msg.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER;
+
+            auto meshPacket = allocDataProtobuf(msg);
+
+            service->sendToMesh(meshPacket);
+        }
+    }
+    else
+    {
+        if (m_lastSwitchState)
+        {
+            m_lastSwitchState = false;
+        }
+    }
+
+    return 1000; // Politely ask to re run this method in 1 second.
+}
+
+void TriggerModule::playMelody(const Tone *melody, uint32_t length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        const Tone &note = melody[i];
+        tone(BUZZER_PIN, note.freq, note.toneDuration);
+        delay(note.toneDuration);
+        noTone(BUZZER_PIN);
+        delay(note.pauseDuration);
+    }
+}
