@@ -6,6 +6,9 @@
 
 #define OSSITECH_MINE_PORT 458
 
+#define SERVO_PIN 0
+#define MOTION_PIN 0
+
 class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurrency::OSThread
 {
     public:
@@ -19,6 +22,11 @@ class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurr
     private:
     Servo m_Servo;
     bool m_triggered;
+    bool m_lastMotionState;
+
+    bool triggerMine();
+
+    bool motionDetected();
 };
 
 extern MineModule *mineModule;
