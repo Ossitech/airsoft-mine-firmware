@@ -14,7 +14,10 @@ MineModule::MineModule()
     m_Servo.setPeriodHertz(50);    // standard 50 hz servo
 	m_Servo.attach(SERVO_PIN, 500, 2000);
 
-    pinMode(MOTION_PIN, INPUT_PULLDOWN);
+    pinMode(MOTION_PIN, INPUT_PULLUP);
+    pinMode(LED, OUTPUT);
+
+    digitalWrite(LED, LOW);
 }
 
 // This handles a MinePacket protobuf that was parsed from an incoming message
@@ -23,8 +26,14 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
 {
     meshtastic_MinePacket response;
 
+    m_tsLastEvent = millis();
+
     if (decoded->messageType == meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER)
     {
+        digitalWrite(LED, HIGH);
+        delay(200);
+        digitalWrite(LED, LOW);
+
         if (triggerMine()) {
             response.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS;
         }
@@ -86,6 +95,11 @@ bool MineModule::motionDetected()
         if (!m_lastMotionState)
         {
             m_lastMotionState = true;
+            m_tsLastEvent = millis();
+
+            digitalWrite(LED, HIGH);
+            delay(200);
+            digitalWrite(LED, LOW);
             return true;
         }
     }
@@ -98,4 +112,18 @@ bool MineModule::motionDetected()
     }
 
     return false;
+}
+
+void MineModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
+    display->clear();
+    display->drawRect(10, 10, 30, 20);
+    display->flush();
+}
+
+bool MineModule::isRequestingFocus()
+{
+    auto now = millis();
+
+    return now - m_tsLastEvent < 5000;
 }

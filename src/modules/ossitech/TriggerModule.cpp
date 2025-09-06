@@ -11,7 +11,9 @@ TriggerModule::TriggerModule()
 
     m_lastSwitchState = false;
 
-    pinMode(SWITCH_PIN, INPUT_PULLDOWN);
+    pinMode(SWITCH_PIN, INPUT_PULLUP);
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);
 }
 
 // This handles a MinePacket protobuf that was parsed from an incoming message
@@ -41,6 +43,12 @@ bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
         { NOTE_D4, 500, 100 },
         { NOTE_C4, 500, 100 }
     };
+
+    m_tsLastEvent = millis();
+    
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
 
     switch (decoded->messageType)
     {
@@ -83,6 +91,12 @@ int32_t TriggerModule::runOnce()
             auto meshPacket = allocDataProtobuf(msg);
 
             service->sendToMesh(meshPacket);
+
+            m_tsLastEvent = millis();
+
+            digitalWrite(LED, HIGH);
+            delay(200);
+            digitalWrite(LED, LOW);
         }
     }
     else
@@ -106,4 +120,18 @@ void TriggerModule::playMelody(const Tone *melody, uint32_t length)
         noTone(BUZZER_PIN);
         delay(note.pauseDuration);
     }
+}
+
+void TriggerModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
+    display->clear();
+    display->drawCircle(100, 100, 100);
+    display->flush();
+}
+
+bool TriggerModule::isRequestingFocus()
+{
+    auto now = millis();
+
+    return now - m_tsLastEvent < 5000;
 }

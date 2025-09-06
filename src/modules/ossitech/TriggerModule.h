@@ -5,8 +5,9 @@
 
 #define OSSITECH_MINE_PORT 458
 
-#define SWITCH_PIN 47
-#define BUZZER_PIN 48
+#define SWITCH_PIN 7
+#define SWITCH_LED_PIN 6
+#define BUZZER_PIN 5
 
 struct Tone
 {
@@ -20,6 +21,12 @@ class TriggerModule : public ProtobufModule<meshtastic_MinePacket>, private conc
     public:
     TriggerModule();
 
+#if HAS_SCREEN
+    void drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y) override;
+    
+    bool isRequestingFocus() override;
+#endif
+
     protected:
     bool handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded) override;
 
@@ -27,6 +34,7 @@ class TriggerModule : public ProtobufModule<meshtastic_MinePacket>, private conc
 
     private:
     bool m_lastSwitchState;
+    unsigned long m_tsLastEvent;
 
     bool switchPressed();
 
