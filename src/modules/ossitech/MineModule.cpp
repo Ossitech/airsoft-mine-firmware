@@ -14,6 +14,8 @@ MineModule::MineModule()
     pinMode(MOTION_PIN, INPUT_PULLDOWN);
 }
 
+// This handles a MinePacket protobuf that was parsed from an incoming message
+// in the base class (ProtobufModule).
 bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded)
 {
     meshtastic_MinePacket response;
@@ -36,6 +38,9 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
     return true;
 }
 
+// This method belongs to the base class OSThread
+// and its execution will be scheduled using the return value
+// of its previous execution as delay in milliseconds.
 int32_t MineModule::runOnce()
 {
     if (motionDetected())
