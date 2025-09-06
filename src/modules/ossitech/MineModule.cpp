@@ -38,7 +38,19 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
 
 int32_t MineModule::runOnce()
 {
-    return 1000; // Politely ask to re run this method in 1000ms.
+    if (motionDetected())
+    {
+        meshtastic_MinePacket msg;
+        msg.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED;
+
+        meshtastic_MeshPacket *meshPacket = allocDataProtobuf(msg);
+
+        service->sendToMesh(meshPacket);
+
+        return 5000; // Politely ask to re run this method in 5 seconds.
+    }
+
+    return 1000; // Politely ask to re run this method in 1 second.
 }
 
 bool MineModule::triggerMine()

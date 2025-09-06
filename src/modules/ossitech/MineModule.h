@@ -6,8 +6,8 @@
 
 #define OSSITECH_MINE_PORT 458
 
-#define SERVO_PIN 0
-#define MOTION_PIN 0
+#define SERVO_PIN 47
+#define MOTION_PIN 48
 
 class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurrency::OSThread
 {
