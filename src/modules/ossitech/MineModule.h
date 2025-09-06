@@ -18,4 +18,7 @@ class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurr
 
     private:
     Servo m_Servo;
+    bool m_triggered;
 };
+
+extern MineModule *mineModule;

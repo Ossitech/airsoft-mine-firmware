@@ -103,6 +103,14 @@
 #include "modules/DropzoneModule.h"
 #endif
 
+#ifndef OSSITECH_EXCLUDE_MINE
+#ifdef OSSITECH_IS_MINE
+#include "modules/ossitech/MineModule.h"
+#else
+// #include "modules/ossitech/TriggerModule.h"
+#endif
+#endif
+
 /**
  * Create module instances here.  If you are adding a new module, you must 'new' it here (or somewhere else)
  */
@@ -284,6 +292,15 @@ void setupModules()
         traceRouteModule = new TraceRouteModule();
 #endif
     }
+
+#ifndef OSSITECH_EXCLUDE_MINE
+#ifdef OSSITECH_IS_MINE
+    mineModule = new MineModule();
+#else
+    // triggerModule = new TriggerModule();
+#endif
+#endif
+    
     // NOTE! This module must be added LAST because it likes to check for replies from other modules and avoid sending extra
     // acks
     routingModule = new RoutingModule();
