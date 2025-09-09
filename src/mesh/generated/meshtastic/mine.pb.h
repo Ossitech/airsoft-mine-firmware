@@ -16,7 +16,10 @@ typedef enum _meshtastic_MinePacket_MessageType {
     meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS = 2,
     meshtastic_MinePacket_MessageType_MINE_MSG_ALREADY_TRIGGERED = 3,
     meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED = 4,
-    meshtastic_MinePacket_MessageType_MINE_MSG_ERROR = 5
+    meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_READY = 5,
+    meshtastic_MinePacket_MessageType_MINE_MSG_PING = 6,
+    meshtastic_MinePacket_MessageType_MINE_MSG_PONG = 7,
+    meshtastic_MinePacket_MessageType_MINE_MSG_ERROR = 8
 } meshtastic_MinePacket_MessageType;
 
 /* Struct definitions */
