@@ -72,16 +72,16 @@ int32_t MineModule::runOnce()
 
 bool MineModule::triggerMine()
 {
+    // Move servo to trigger Begadi M1 Mine.
+    m_Servo.write(60);
+    delay(300);
+    m_Servo.write(0);
+
     if (m_triggered)
     {
         // Already triggered.
         return false;
     }
-
-    // Move servo to trigger Begadi M1 Mine.
-    m_Servo.write(60);
-    delay(300);
-    m_Servo.write(0);
 
     m_triggered = true;
     
