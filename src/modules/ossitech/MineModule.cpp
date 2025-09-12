@@ -14,7 +14,7 @@ MineModule::MineModule()
     m_Servo.setPeriodHertz(50);    // standard 50 hz servo
 	m_Servo.attach(SERVO_PIN, 500, 2000);
 
-    pinMode(MOTION_PIN, INPUT_PULLUP);
+    pinMode(MOTION_PIN, INPUT_PULLDOWN);
     pinMode(LED, OUTPUT);
 
     digitalWrite(LED, LOW);
@@ -90,7 +90,7 @@ bool MineModule::triggerMine()
 
 bool MineModule::motionDetected()
 {
-    if (digitalRead(MOTION_PIN) == 0) // 0 means activated -> connected to GND through sensor.
+    if (digitalRead(MOTION_PIN)) // 0 means activated -> connected to GND through sensor.
     {
         if (!m_lastMotionState)
         {
