@@ -24,28 +24,29 @@ MineModule::MineModule()
 // in the base class (ProtobufModule).
 bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded)
 {
-    meshtastic_MinePacket response;
-
     m_tsLastEvent = millis();
 
-    if (decoded->messageType == meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER)
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
+
+    switch(decoded->messageType)
     {
-        digitalWrite(LED, HIGH);
-        delay(200);
-        digitalWrite(LED, LOW);
+        case meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER:
+            if (triggerMine()) {
+                sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS);
+            }
+            else
+            {
+                sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_ALREADY_TRIGGERED);
+            }
 
-        if (triggerMine()) {
-            response.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER_SUCCESS;
-        }
-        else
-        {
-            response.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_ALREADY_TRIGGERED;
-        }
+            break;
+        
+        case meshtastic_MinePacket_MessageType_MINE_MSG_PING:
+            sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_PONG);
+            break;
     }
-
-    meshtastic_MeshPacket *meshPacket = allocDataProtobuf(response);
-
-    service->sendToMesh(meshPacket);
 
     return true;
 }
@@ -57,12 +58,7 @@ int32_t MineModule::runOnce()
 {
     if (motionDetected())
     {
-        meshtastic_MinePacket msg;
-        msg.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED;
-
-        meshtastic_MeshPacket *meshPacket = allocDataProtobuf(msg);
-
-        service->sendToMesh(meshPacket);
+        sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED);
 
         return 5000; // Politely ask to re run this method in 5 seconds.
     }
@@ -126,4 +122,14 @@ bool MineModule::isRequestingFocus()
     auto now = millis();
 
     return now - m_tsLastEvent < 5000;
+}
+
+void MineModule::sendMineMessage(meshtastic_MinePacket_MessageType msgType)
+{
+    meshtastic_MinePacket msg;
+    msg.messageType = msgType;
+
+    auto meshPacket = allocDataProtobuf(msg);
+
+    service->sendToMesh(meshPacket);
 }

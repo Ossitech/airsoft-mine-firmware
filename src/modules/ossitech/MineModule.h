@@ -25,6 +25,8 @@ class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurr
 
     int32_t runOnce() override;
 
+    void sendMineMessage(meshtastic_MinePacket_MessageType msgType);
+
     private:
     Servo m_Servo;
     bool m_triggered;

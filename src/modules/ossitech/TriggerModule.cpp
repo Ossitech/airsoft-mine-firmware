@@ -11,9 +11,13 @@ TriggerModule::TriggerModule()
 
     m_lastSwitchState = false;
 
-    pinMode(SWITCH_PIN, INPUT_PULLUP);
+    m_cycle = 0;
+
+    pinMode(SWITCH_PIN, INPUT_PULLDOWN);
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
+    pinMode(SWITCH_LED_PIN, OUTPUT);
+    digitalWrite(SWITCH_LED_PIN, HIGH);
 }
 
 // This handles a MinePacket protobuf that was parsed from an incoming message
@@ -64,6 +68,11 @@ bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
         playMelody(melodyAlreadyTriggered, 3);
         break;
 
+        case meshtastic_MinePacket_MessageType_MINE_MSG_PONG:
+        // Turn on red switch led. LOW -> ON, HIGH -> OFF.
+        digitalWrite(SWITCH_LED_PIN, LOW);
+        break;
+
         case meshtastic_MinePacket_MessageType_MINE_MSG_ERROR:
         default:
         playMelody(melodyError, 3);
@@ -78,19 +87,14 @@ bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
 // of its previous execution as delay in milliseconds.
 int32_t TriggerModule::runOnce()
 {
-    if (digitalRead(SWITCH_PIN) == 0) // 0 means pressed -> connected to GND through switch.
+    if (digitalRead(SWITCH_PIN))
     {
         if (!m_lastSwitchState)
         {
             // Switch pressed
             m_lastSwitchState = true;
 
-            meshtastic_MinePacket msg;
-            msg.messageType = meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER;
-
-            auto meshPacket = allocDataProtobuf(msg);
-
-            service->sendToMesh(meshPacket);
+            sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER);
 
             m_tsLastEvent = millis();
 
@@ -105,6 +109,16 @@ int32_t TriggerModule::runOnce()
         {
             m_lastSwitchState = false;
         }
+    }
+
+    if (m_cycle++ >= CYCLES_BETWEEN_PINGS)
+    {
+        m_cycle = 0;
+
+        // send ping
+        sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_PING);
+        // Turn off red switch led until PONG is received.
+        digitalWrite(SWITCH_LED_PIN, HIGH);
     }
 
     return 1000; // Politely ask to re run this method in 1 second.
@@ -134,4 +148,14 @@ bool TriggerModule::isRequestingFocus()
     auto now = millis();
 
     return now - m_tsLastEvent < 5000;
+}
+
+void TriggerModule::sendMineMessage(meshtastic_MinePacket_MessageType msgType)
+{
+    meshtastic_MinePacket msg;
+    msg.messageType = msgType;
+
+    auto meshPacket = allocDataProtobuf(msg);
+
+    service->sendToMesh(meshPacket);
 }

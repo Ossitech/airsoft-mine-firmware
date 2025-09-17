@@ -9,6 +9,8 @@
 #define SWITCH_LED_PIN 6
 #define BUZZER_PIN 5
 
+#define CYCLES_BETWEEN_PINGS 10
+
 struct Tone
 {
     uint32_t freq;
@@ -32,9 +34,12 @@ class TriggerModule : public ProtobufModule<meshtastic_MinePacket>, private conc
 
     int32_t runOnce() override;
 
+    void sendMineMessage(meshtastic_MinePacket_MessageType msgType);
+
     private:
     bool m_lastSwitchState;
     unsigned long m_tsLastEvent;
+    int m_cycle;
 
     bool switchPressed();
 
