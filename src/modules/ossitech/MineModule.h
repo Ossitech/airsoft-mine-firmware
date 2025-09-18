@@ -9,6 +9,9 @@
 #define SERVO_PIN 7
 #define MOTION_PIN 6
 
+#define MOTION_COOLDOWN_MS 5000
+#define MSG_COOLDOWN_MS 5000
+
 class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurrency::OSThread
 {
     public:
@@ -31,7 +34,7 @@ class MineModule : public ProtobufModule<meshtastic_MinePacket>, private concurr
     Servo m_Servo;
     bool m_triggered;
     bool m_lastMotionState;
-    unsigned long m_tsLastEvent;
+    unsigned long m_tsLastMessage;
 
     bool triggerMine();
 

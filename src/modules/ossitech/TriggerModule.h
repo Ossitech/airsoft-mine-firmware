@@ -9,7 +9,8 @@
 #define SWITCH_LED_PIN 6
 #define BUZZER_PIN 5
 
-#define CYCLES_BETWEEN_PINGS 10
+// One cycle is roughly one second.
+#define CYCLES_BETWEEN_PINGS 60
 
 struct Tone
 {
@@ -38,7 +39,6 @@ class TriggerModule : public ProtobufModule<meshtastic_MinePacket>, private conc
 
     private:
     bool m_lastSwitchState;
-    unsigned long m_tsLastEvent;
     int m_cycle;
 
     bool switchPressed();

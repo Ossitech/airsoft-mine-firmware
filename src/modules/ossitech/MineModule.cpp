@@ -24,7 +24,7 @@ MineModule::MineModule()
 // in the base class (ProtobufModule).
 bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded)
 {
-    m_tsLastEvent = millis();
+    m_tsLastMessage = millis();
 
     digitalWrite(LED, HIGH);
     delay(200);
@@ -46,6 +46,9 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
         case meshtastic_MinePacket_MessageType_MINE_MSG_PING:
             sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_PONG);
             break;
+        
+        default:
+            break;
     }
 
     return true;
@@ -56,14 +59,21 @@ bool MineModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtas
 // of its previous execution as delay in milliseconds.
 int32_t MineModule::runOnce()
 {
-    if (motionDetected())
-    {
-        sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED);
+    auto msSinceLastMsg = millis() - m_tsLastMessage;
 
-        return 5000; // Politely ask to re run this method in 5 seconds.
+    if (msSinceLastMsg > MSG_COOLDOWN_MS)
+    {
+        if (motionDetected())
+        {
+            sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_MOTION_DETECTED);
+
+            return MOTION_COOLDOWN_MS; // Politely ask to re run this method in 5 seconds.
+        }
+
+        return 1000;
     }
 
-    return 1000; // Politely ask to re run this method in 1 second.
+    return MSG_COOLDOWN_MS - msSinceLastMsg;
 }
 
 bool MineModule::triggerMine()
@@ -91,7 +101,7 @@ bool MineModule::motionDetected()
         if (!m_lastMotionState)
         {
             m_lastMotionState = true;
-            m_tsLastEvent = millis();
+            m_tsLastMessage = millis();
 
             digitalWrite(LED, HIGH);
             delay(200);
@@ -112,16 +122,12 @@ bool MineModule::motionDetected()
 
 void MineModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
 {
-    display->clear();
-    display->drawRect(10, 10, 30, 20);
-    display->flush();
+    
 }
 
 bool MineModule::isRequestingFocus()
 {
-    auto now = millis();
-
-    return now - m_tsLastEvent < 5000;
+    return false;
 }
 
 void MineModule::sendMineMessage(meshtastic_MinePacket_MessageType msgType)

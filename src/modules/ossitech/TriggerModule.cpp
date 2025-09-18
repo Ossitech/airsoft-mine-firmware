@@ -25,21 +25,21 @@ TriggerModule::TriggerModule()
 bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, meshtastic_MinePacket *decoded)
 {
     static const Tone melodyMotion[] = {
-        { NOTE_C5, 200, 100 },
-        { NOTE_C5, 200, 100 },
-        { NOTE_C5, 200, 100 }
+        { NOTE_C5, 100, 50 },
+        { NOTE_C5, 100, 50 },
+        { NOTE_C5, 100, 50 }
     };
 
     static const Tone melodySuccess[] = {
-        { NOTE_C5, 200, 100 },
-        { NOTE_D5, 200, 100 },
-        { NOTE_E5, 200, 100 }
+        { NOTE_C5, 100, 20 },
+        { NOTE_E5, 100, 20 },
+        { NOTE_G5, 100, 20 }
     };
 
     static const Tone melodyAlreadyTriggered[] = {
-        { NOTE_E5, 200, 100 },
-        { NOTE_D5, 200, 100 },
-        { NOTE_C5, 200, 100 }
+        { NOTE_G5, 100, 20 },
+        { NOTE_E5, 100, 20 },
+        { NOTE_C5, 100, 20 }
     };
 
     static const Tone melodyError[] = {
@@ -47,8 +47,6 @@ bool TriggerModule::handleReceivedProtobuf(const meshtastic_MeshPacket &mp, mesh
         { NOTE_D4, 500, 100 },
         { NOTE_C4, 500, 100 }
     };
-
-    m_tsLastEvent = millis();
     
     digitalWrite(LED, HIGH);
     delay(200);
@@ -96,8 +94,6 @@ int32_t TriggerModule::runOnce()
 
             sendMineMessage(meshtastic_MinePacket_MessageType_MINE_MSG_TRIGGER);
 
-            m_tsLastEvent = millis();
-
             digitalWrite(LED, HIGH);
             delay(200);
             digitalWrite(LED, LOW);
@@ -138,16 +134,12 @@ void TriggerModule::playMelody(const Tone *melody, uint32_t length)
 
 void TriggerModule::drawFrame(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
 {
-    display->clear();
-    display->drawCircle(100, 100, 100);
-    display->flush();
+    
 }
 
 bool TriggerModule::isRequestingFocus()
 {
-    auto now = millis();
-
-    return now - m_tsLastEvent < 5000;
+    return false;
 }
 
 void TriggerModule::sendMineMessage(meshtastic_MinePacket_MessageType msgType)

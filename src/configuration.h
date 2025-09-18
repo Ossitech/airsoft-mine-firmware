@@ -465,7 +465,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // #define OSSITECH_EXCLUDE_MINE
 #ifndef OSSITECH_EXCLUDE_MINE
-// #define OSSITECH_IS_MINE // Comment out for trigger unit.
+#define OSSITECH_IS_MINE // Comment out for trigger unit.
 #endif
 
 #include "DebugConfiguration.h"
